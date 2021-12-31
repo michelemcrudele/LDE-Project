@@ -73,14 +73,20 @@ def SIR_net(G, beta, mu, initial_infecteds):
 
 
 def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, initial_no_vax):
-    """G = physical network, NET = information network, beta = infection rate, mu = recovery rate,
-    r = rate of vaccination for PV, pro = rate of classical media influence on people,
-    pol = propensity of opinion polarization, p_sym = prob for an infected person to have severe symptoms,
+    """
+    G = physical network
+    NET = information network,
+    beta = infection rate,
+    mu = recovery rate,
+    r = rate of vaccination for PV,
+    pro = rate of classical media influence on people,
+    pol = propensity of opinion polarization,
+    p_sym = prob for an infected person to have severe symptoms,
     initial_infecteds = list of infected nodes at time t=0,
     initial_no_vax = list of NV nodes at time t=0 """
     
     #INITIALIZATION
-    inf_status = {}  # infectious status of a node: 0= susceptible; 1= infectious; 2= recovered 
+    inf_status = {}  # infectious status of a node: 0 = susceptible; 1 = infectious; 2 = recovered 
     for i in range(G.number_of_nodes()):
         inf_status[i] = 0
     for i in initial_infecteds:
@@ -145,28 +151,28 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, in
             if NET.nodes[i]['aware_status'] == 0:                                              # a neutral person can:
                 if random.random() < pro:
                     NET.nodes[i]['new_aware_status'] = 2                                       # become a pro vax due to classical media
-                    continue
                 
-                x = 0 # No-Vax
-                y = 0 # Pro-Vax
-                n = 0 # neutral
-                for j in nx.all_neighbors(NET, i):                                             # or look around into social media
-                    if NET.nodes[j]['aware_status'] == 1:
-                        x += 1
-                    elif NET.nodes[j]['aware_status'] == 2:
-                        y += 1
-                    else:
-                        n += 1
-                p_nv = x / (x + y + n) # prob of becoming No-Vax
-                p_pv = y / (x + y + n) # prob of becoming Pro-Vax
-                random_val = random.random()
-                if random_val <= p_nv:
-                    NET.nodes[i]['new_aware_status'] = 1                                      # becomes a novax via neighbours
+                else:                                                                          # or look around into social media
+                    x = 0 # No-Vax
+                    y = 0 # Pro-Vax
+                    n = 0 # neutral
+                    for j in nx.all_neighbors(NET, i):                                         
+                        if NET.nodes[j]['aware_status'] == 1:
+                            x += 1
+                        elif NET.nodes[j]['aware_status'] == 2:
+                            y += 1
+                        else:
+                            n += 1
+                    p_nv = x / (x + y + n) # prob of becoming No-Vax
+                    p_pv = y / (x + y + n) # prob of becoming Pro-Vax
+                    random_val = random.random()
+                    if random_val <= p_nv:
+                        NET.nodes[i]['new_aware_status'] = 1                                   # becomes a novax via neighbours
                                     
-                elif random_val > p_nv and random_val <= p_pv:                                # becomes a provax via neighbours
-                    NET.nodes[i]['new_aware_status'] = 2
+                    elif random_val > p_nv and random_val <= p_pv:                             # becomes a provax via neighbours
+                        NET.nodes[i]['new_aware_status'] = 2
             
-            if G.nodes[i]['inf_status'] == 1:                                                 # an ifected person, if symptomatic, can become provax
+            elif G.nodes[i]['inf_status'] == 1:                                                # an ifected person, if symptomatic, can become provax
                 if random.random() < p_sym:
                     NET.nodes[i]['new_aware_status'] = 2
         
