@@ -4,9 +4,12 @@ import random
 import sys
 
 # Simple SIR process
-def SIR_net(G, beta, mu, initial_infecteds):
+def SIR_net(G, beta, mu, initial_infecteds, seed=123):
     """G = network, beta = infection rate, mu = recovery rate,
     initial_infecteds = list of infected nodes at time t=0 """
+
+    np.random.seed(seed)
+    random.seed(seed)
 
     #INITIALIZATION
     inf_status = {}  # infectious status of a node: 0 = susceptible; 1 = infectious; 2 = recovered 
@@ -72,7 +75,7 @@ def SIR_net(G, beta, mu, initial_infecteds):
     return np.array(time), np.array(S), np.array(I), np.array(R)
 
 
-def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, initial_no_vax):
+def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, initial_no_vax, rewiring=True, seed=123):
     """
     G = physical network
     NET = information network,
@@ -83,7 +86,11 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, in
     pol = propensity of opinion polarization,
     p_sym = prob for an infected person to have severe symptoms,
     initial_infecteds = list of infected nodes at time t=0,
-    initial_no_vax = list of NV nodes at time t=0 """
+    initial_no_vax = list of NV nodes at time t=0
+    rewiring = whether the information network should be static or dynamic"""
+
+    np.random.seed(seed)
+    random.seed(seed)
     
     #INITIALIZATION
     inf_status = {}  # infectious status of a node: 0 = susceptible; 1 = infectious; 2 = recovered 
@@ -176,32 +183,33 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, in
                 if random.random() < p_sym:
                     NET.nodes[i]['new_aware_status'] = 2
         
-        # REWIRING OF THE INFORMATION NETWORK                            
-        # the lists of nodes which are useful for rewiring
-        neutral = []
-        novax   = []
-        provax  = []
+        # REWIRING OF THE INFORMATION NETWORK 
+        if rewiring:                           
+            # the lists of nodes which are useful for rewiring
+            neutral = []
+            novax   = []
+            provax  = []
         
-        for u in nx.nodes(NET):
-            if NET.nodes[u]['aware_status'] == 0:
-                neutral.append(u)
-            elif NET.nodes[u]['aware_status'] == 1  :
-                novax.append(u)
-            else:
-                provax.append(u)  
+            for u in nx.nodes(NET):
+                if NET.nodes[u]['aware_status'] == 0:
+                    neutral.append(u)
+                elif NET.nodes[u]['aware_status'] == 1  :
+                    novax.append(u)
+                else:
+                    provax.append(u)  
 
-        # rewiring
-        for i in nx.edges(NET):      
-            i = list(i)  
-            if (NET.nodes[i[0]]['aware_status'] + NET.nodes[i[1]]['aware_status'] == 3):      # two nodes with different opinions 
-                if random.random() < pol:    
-                    NET.remove_edge(i[0], i[1])
-                    if NET.nodes[i[0]]['aware_status'] == 1:
-                        NET.add_edge(i[0], np.random.choice(novax)) 
-                        NET.add_edge(i[1], np.random.choice(provax))
-                    else:
-                        NET.add_edge(i[1], np.random.choice(novax)) 
-                        NET.add_edge(i[0], np.random.choice(provax)) 
+            # rewiring
+            for i in nx.edges(NET):      
+                i = list(i)  
+                if (NET.nodes[i[0]]['aware_status'] + NET.nodes[i[1]]['aware_status'] == 3):      # two nodes with different opinions 
+                    if random.random() < pol:    
+                        NET.remove_edge(i[0], i[1])
+                        if NET.nodes[i[0]]['aware_status'] == 1:
+                            NET.add_edge(i[0], np.random.choice(novax)) 
+                            NET.add_edge(i[1], np.random.choice(provax))
+                        else:
+                            NET.add_edge(i[1], np.random.choice(novax)) 
+                            NET.add_edge(i[0], np.random.choice(provax)) 
 
         # UPDATE NETWORKS     
         for i in nx.nodes(G):
