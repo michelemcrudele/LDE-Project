@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import networkx as nx
-import sys
 from utils import SIR_net_adaptive
 import utils
 import multiprocessing as mp
@@ -29,28 +27,27 @@ def simulate_polarization():
         ar.append(sim[4])
     return ar
 
-def collect_result(result):
-    global results
-    results.append(result)
-
-nsim = 20
-results = []
+nsim = 5
+answers = []
 pool = mp.Pool(mp.cpu_count())
-start = time.time()
-for _ in range(nsim):
-    pool.apply_async(simulate_polarization, callback=collect_result)
 
+start = time.time()
+results = [pool.apply_async(simulate_polarization) for _ in range(nsim)]
+answers = [res.get(timeout=180) for res in results]
 pool.close()
-results = np.array(results)
-ar_mean = np.mean(results, axis=0)
-ar_sd = np.std(results, axis=0)
+stop = time.time()
+
+answers = np.array(answers)
+ar_mean = np.mean(answers, axis=0)
+ar_sd = np.std(answers, axis=0)
 
 plt.figure(figsize=(10,6))
 plt.xlabel('polarization', size=15)
 plt.ylabel('final attack rate', size=15)
 plt.title(f'{nsim} simulations', size=12)
-plt.boxplot(results, patch_artist=True, positions=polarization)
+plt.boxplot(answers, patch_artist=True, positions=polarization)
 plt.grid(axis='y', alpha=0.5)
 plt.xlim(0,1)
 plt.savefig(f'polarization_{nsim}sim_{r}r.png')
 print('n simulations:', nsim)
+print('time elapsed:', round((stop - start)/60, 2), 'minutes')
