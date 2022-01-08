@@ -289,7 +289,7 @@ def initNET_rnd(G, initial_novax):
 # follows a voter model, plus there is the effet of classical media acting on the NV population (a small effect that 
 # should account for the fact that, as time goes by, social and political pressure erode the NV population)
 
-def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, rewiring=True, seed=123, message=True):
+def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, rewiring=True, rng=np.random.default_rng(123), message=True):
     """
     G: physical network
     NET: information network,
@@ -301,9 +301,6 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, re
     p_sym: prob for an infected person to have severe symptoms,
     initial_infecteds: list of infected nodes at time t=0,
     rewiring: whether the information network should be static or dynamic"""
-
-    np.random.seed(seed)
-    random.seed(seed)
     
     #INITIALIZATION
     inf_status = {}
@@ -369,36 +366,36 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, re
             for i in nx.edges(NET):      
                 i = list(i)  
                 if (NET.nodes[i[0]]['aware_status'] + NET.nodes[i[1]]['aware_status'] == 1):      # two nodes with different opinions 
-                    if random.random() < pol:    
+                    if rng.random() < pol:    
                         NET.remove_edge(i[0], i[1])
                         if NET.nodes[i[0]]['aware_status'] == 1:
-                            NET.add_edge(i[0], np.random.choice(novax)) 
-                            NET.add_edge(i[1], np.random.choice(provax))
+                            NET.add_edge(i[0], rng.choice(novax)) 
+                            NET.add_edge(i[1], rng.choice(provax))
                         else:
-                            NET.add_edge(i[1], np.random.choice(novax)) 
-                            NET.add_edge(i[0], np.random.choice(provax))
+                            NET.add_edge(i[1], rng.choice(novax)) 
+                            NET.add_edge(i[0], rng.choice(provax))
 
         # EPIDEMICS IN THE PHYSICAL NETWORK
         for i in nx.nodes(G):
             # all possible transitions
             if (NET.nodes[i]['aware_status'] == 0) and (G.nodes[i]['inf_status'] == 'S'):        # provax that get vaccinated
-                if random.random() < r:
+                if rng.random() < r:
                     G.nodes[i]['new_inf_status'] = 'V'
                     
             if G.nodes[i]['inf_status'] == 'I':                                                  # infectious that recover
-                if random.random() < mu:
+                if rng.random() < mu:
                     G.nodes[i]['new_inf_status'] = 'R'
                     
             elif G.nodes[i]['inf_status'] == 'S':                                                # susceptible
                 for j in nx.all_neighbors(G, i):
                     if G.nodes[j]['inf_status'] == 'I':
-                        if random.random() < beta:                                             # here they get the disease
+                        if rng.random() < beta:                                             # here they get the disease
                             G.nodes[i]['new_inf_status'] = 'I'
                             G.nodes[i]['got_infected'] = 1
                             
             # EPIDEMICS IN THE INFORMATION NETWORK
             if NET.nodes[i]['aware_status'] == 1:                                              # a no vax person can:
-                if random.random() < pro:
+                if rng.random() < pro:
                     NET.nodes[i]['new_aware_status'] = 0                                       # become a pro vax due to classical media
                 
                 else:                                                                          # or look around into social media
@@ -410,11 +407,11 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, re
                         else:
                             x += 1
                     p_pv = y / (x + y) # prob of becoming Pro-Vax
-                    if random.random() <= p_pv:
+                    if rng.random() <= p_pv:
                         NET.nodes[i]['new_aware_status'] = 0                                   # become a pro vax via neighbours
 
                 if G.nodes[i]['inf_status'] == 1:                                              # an ifected person, if symptomatic, can become provax
-                    if random.random() < p_sym:
+                    if rng.random() < p_sym:
                         NET.nodes[i]['new_aware_status'] = 0
             
             else:                                                                              # a pro vax person can:
@@ -427,7 +424,7 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, p_sym, initial_infecteds, re
                             else:
                                x += 1
                     p_nv = x / (x + y) # prob of becoming No-Vax
-                    if random.random() <= p_nv:
+                    if rng.random() <= p_nv:
                            NET.nodes[i]['new_aware_status'] = 1                                # become a no vax via neighbours
             
 
