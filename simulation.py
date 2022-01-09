@@ -19,7 +19,7 @@ nsim = int(sys.argv[1]) # number of simulations
 # time pol r attak_rate clustering_mean clustering ave/std stat/dyn
 
 output = open('SIR_simulation.csv', 'a')
-columns = ['time\t', 'I\t', 'pol\t', 'r\t', 'ar\t', 'cc\t', 'kind\t', 'net_type']
+columns = ['time,I,pol,r,ar,cc,kind,net_type']
 output.writelines(columns)
 output.write('\n')
 
@@ -101,21 +101,29 @@ def simulate_params(r, pol, par, rng, out_file):
     times_dyn = np.arange(min_time_dyn)
 
     for t, i_mean, i_std in zip(times_stat, mean_I_stat, std_I_stat):
-        out_file.write(f'{t}\t{i_mean}\t{pol}\t{r}\t{int(mean_I_tot_stat)}\t{round(mean_cc_stat, 3)}\tmean\tstatic')
+        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_stat)},{round(mean_cc_stat, 3)},mean,static')
         out_file.write('\n')
-        out_file.write(f'{t}\t{i_std}\t{pol}\t{r}\t{int(std_I_tot_stat)}\t{round(std_cc_stat, 3)}\tstd\tstatic')
+        out_file.write(f'{t},{round(i_std,2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_stat)},{round(std_cc_stat, 3)},std,static')
         out_file.write('\n')
 
     for t, i_mean, i_std in zip(times_dyn, mean_I_dyn, std_I_dyn):
-        out_file.write(f'{t}\t{i_mean}\t{pol}\t{r}\t{int(mean_I_tot_dyn)}\t{round(mean_cc_dyn, 3)}\tmean\tdynamic')
+        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_dyn)},{round(mean_cc_dyn, 3)},mean,dynamic')
         out_file.write('\n')
-        out_file.write(f'{t}\t{i_std}\t{pol}\t{r}\t{int(std_I_tot_dyn)}\t{round(std_cc_dyn, 3)}\tstd\tdynamic')
+        out_file.write(f'{t},{round(i_std, 2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_dyn)},{round(std_cc_dyn, 3)},std,dynamic')
         out_file.write('\n')
     print(f'completed: r={r}, pol={pol}')
-
-start = time.time()
-simulate_params(0.2, 0.4, par, rng, output)
-stop = time.time()
+    
+r_list = np.arange(0.1, 1., 0.1)
+pol_list = np.arange(0.1, 1., 0.1)
+start_tot = time.time()
+for r in r_list:
+    for pol in pol_list:
+        start = time.time()
+        simulate_params(r, pol, par, rng, output)
+        stop = time.time()
+        print('simulation took:', round((stop - start)/60, 1), 'min')
+        print('total time:', round((stop - start_tot)/60, 1), 'min', '\n')
+stop_tot = time.time()
 output.close()
 print('\nSimulation completed')
-print('simulation time:', round((stop - start)/60, 1), 'min')
+print('total simulation time:', round((stop_tot - start_tot)/60, 1), 'min')
