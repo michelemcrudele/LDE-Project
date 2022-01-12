@@ -18,7 +18,7 @@ nsim = int(sys.argv[1]) # number of simulations
 # output file
 # time pol r attak_rate clustering_mean clustering ave/std stat/dyn
 
-filename = 'SIR_simulation_{N}_{n_novax}.csv'.format(N=par['N'], n_novax=par['n_novax'])
+filename = 'SIR_simulation_{N}_{n_novax}_{degree}.csv'.format(N=par['N'], n_novax=par['n_novax'], degree=par['ave_degree'])
 output = open(filename, 'a')
 columns = ['time,I,pol,r,ar,cc,kind,net_type']
 output.writelines(columns)
