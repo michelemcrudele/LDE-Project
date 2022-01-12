@@ -1,5 +1,5 @@
 {
-    "N" : 1000,
+    "N" : 2000,
     "ave_degree" : 15,
     "n_novax" : 200,
     "n_infecteds" : 5,

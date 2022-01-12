@@ -18,7 +18,8 @@ nsim = int(sys.argv[1]) # number of simulations
 # output file
 # time pol r attak_rate clustering_mean clustering ave/std stat/dyn
 
-output = open('SIR_simulation.csv', 'a')
+filename = 'SIR_simulation_{N}_{n_novax}.csv'.format(N=par['N'], n_novax=par['n_novax'])
+output = open(filename, 'a')
 columns = ['time,I,pol,r,ar,cc,kind,net_type']
 output.writelines(columns)
 output.write('\n')
@@ -73,7 +74,7 @@ def simulation_step(par, rng, r, pol):
 def simulate_params(r, pol, par, rng, out_file):
     pool = mp.Pool(mp.cpu_count())
     results = [pool.apply_async(simulation_step, args=(par, rng, r, pol)) for _ in range(nsim)]
-    answers = [res.get(timeout=240) for res in results]
+    answers = [res.get(timeout=600) for res in results]
     pool.close()
 
     answers = np.array(answers, dtype=object) # [nsim, 4, 2]
