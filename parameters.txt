@@ -1,10 +1,9 @@
 {
     "N" : 1000,
-    "ave_degree" : 30,
+    "ave_degree" : 10,
     "n_novax" : 200,
     "n_infecteds" : 5,
     "mu" : 0.1,
     "beta" : 0.15,
-    "p_sym" : 0.0,
     "pro" : 0.0
 }

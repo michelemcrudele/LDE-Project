@@ -18,9 +18,9 @@ nsim = int(sys.argv[1]) # number of simulations
 # output file
 # time pol r attak_rate clustering_mean clustering ave/std stat/dyn
 
-filename = '~/Simulations/SIR_simulation_{N}_{n_novax}_{degree}.csv'.format(N=par['N'], n_novax=par['n_novax'], degree=par['ave_degree'])
+filename = 'Simulations/SIR_simulation_{N}_{n_novax}_{degree}.csv'.format(N=par['N'], n_novax=par['n_novax'], degree=par['ave_degree'])
 output = open(filename, 'a')
-columns = ['time,I,pol,r,ar,cc,kind,net_type']
+columns = ['time,I,pol,r,ar,cc,V_tot,kind,net_type']
 output.writelines(columns)
 output.write('\n')
 
@@ -36,27 +36,25 @@ def simulation_step(par, rng, r, pol):
     initNET_rnd(info_net_stat, initial_novax=initial_novax)
     info_net_dyn = info_net_stat.copy()
 
-    time_stat, _, I_stat, _, I_tot_stat = SIR_net_adaptive(
+    time_stat, _, I_stat, _, V_stat, I_tot_stat = SIR_net_adaptive(
         phys_net, info_net_stat,
         beta=par['beta'],
         mu=par['mu'],
         r=r,
         pro=par['pro'],
         pol=pol,
-        p_sym=par['p_sym'],
         initial_infecteds=initial_infecteds,
         rewiring=False,
         rng=np.random.default_rng(seed),
         message=False)
 
-    time_dyn, _, I_dyn, _, I_tot_dyn = SIR_net_adaptive(
+    time_dyn, _, I_dyn, _, V_dyn, I_tot_dyn = SIR_net_adaptive(
         phys_net, info_net_dyn,
         beta=par['beta'],
         mu=par['mu'],
         r=r,
         pro=par['pro'],
         pol=pol,
-        p_sym=par['p_sym'],
         initial_infecteds=initial_infecteds,
         rewiring=True,
         rng=np.random.default_rng(seed),
@@ -68,7 +66,8 @@ def simulation_step(par, rng, r, pol):
         [len(time_stat), len(time_dyn)],
         [I_stat, I_dyn],
         [I_tot_stat, I_tot_dyn],
-        [cc_stat, cc_dyn])
+        [cc_stat, cc_dyn],
+        [V_stat[-1], V_dyn[-1]])
     
 
 def simulate_params(r, pol, par, rng, out_file):
@@ -77,9 +76,9 @@ def simulate_params(r, pol, par, rng, out_file):
     answers = [res.get(timeout=600) for res in results]
     pool.close()
 
-    answers = np.array(answers, dtype=object) # [nsim, 4, 2]
-    static_data = answers[:, :, 0] # [nsim, 4]
-    dynamic_data = answers[:, :, 1]# [nsim, 4]
+    answers = np.array(answers, dtype=object) # [nsim, 5, 2]
+    static_data = answers[:, :, 0] # [nsim, 5]
+    dynamic_data = answers[:, :, 1]# [nsim, 5]
     min_time_stat = min(static_data[:, 0])
     min_time_dyn = min(dynamic_data[:, 0])
 
@@ -98,19 +97,24 @@ def simulate_params(r, pol, par, rng, out_file):
     mean_cc_dyn = np.mean(dynamic_data[:, 3])
     std_cc_dyn = np.std(dynamic_data[:, 3])
 
+    mean_V_tot_stat = np.mean(static_data[:, 4])
+    std_V_tot_stat = np.std(static_data[:, 4])
+    mean_V_tot_dyn = np.mean(dynamic_data[:, 4])
+    std_V_tot_dyn = np.std(dynamic_data[:, 4])
+
     times_stat = np.arange(min_time_stat)
     times_dyn = np.arange(min_time_dyn)
 
     for t, i_mean, i_std in zip(times_stat, mean_I_stat, std_I_stat):
-        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_stat)},{round(mean_cc_stat, 3)},mean,static')
+        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_stat)},{round(mean_cc_stat, 3)},{mean_V_tot_stat},mean,static')
         out_file.write('\n')
-        out_file.write(f'{t},{round(i_std,2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_stat)},{round(std_cc_stat, 3)},std,static')
+        out_file.write(f'{t},{round(i_std,2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_stat)},{round(std_cc_stat, 3)},{std_V_tot_stat},std,static')
         out_file.write('\n')
 
     for t, i_mean, i_std in zip(times_dyn, mean_I_dyn, std_I_dyn):
-        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_dyn)},{round(mean_cc_dyn, 3)},mean,dynamic')
+        out_file.write(f'{t},{round(i_mean, 2)},{round(pol, 1)},{round(r, 1)},{int(mean_I_tot_dyn)},{round(mean_cc_dyn, 3)},{mean_V_tot_dyn},mean,dynamic')
         out_file.write('\n')
-        out_file.write(f'{t},{round(i_std, 2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_dyn)},{round(std_cc_dyn, 3)},std,dynamic')
+        out_file.write(f'{t},{round(i_std, 2)},{round(pol, 1)},{round(r, 1)},{int(std_I_tot_dyn)},{round(std_cc_dyn, 3)},{std_V_tot_dyn},std,dynamic')
         out_file.write('\n')
     print(f'completed: r={r}, pol={pol}')
     
