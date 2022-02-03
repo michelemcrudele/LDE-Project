@@ -168,9 +168,9 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
     pv_init = 0
     for i in NET.nodes():
         if NET.nodes[i]['aware_status'] == 0:
-            nv_init += 1
-        else:
             pv_init += 1
+        else:
+            nv_init += 1
     NV.append(nv_init)
     PV.append(pv_init)
     
