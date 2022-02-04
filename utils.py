@@ -2,6 +2,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import scipy
+from scipy import optimize
 import sys
 
 # Simple SIR process
@@ -229,7 +231,7 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
                 if G.nodes[i]['inf_status'] != 'V':
                     neighbors = list(nx.all_neighbors(NET, i))
                     target = rng.choice(neighbors, 1)[0]
-                    NET.nodes[i]['new_aware_status'] = NET.nodes[target]['aware_status']     # can become a pro vax via neighbours
+                    NET.nodes[i]['new_aware_status'] = NET.nodes[target]['aware_status']     # can become a pro/no vax via neighbours
             
 
         # UPDATE NETWORKS     
@@ -284,3 +286,34 @@ def plot_info_network(G):
         node_color='red', label='No-Vax', node_size=20)
     nx.draw_networkx_edges(G, pos=pos, width=0.1)
     plt.legend(scatterpoints=1, fontsize=12)
+    
+    
+    
+    
+    
+def fitR0(x, y, start = 0, n_points = 6):
+    xx = x
+    yy = y
+    xfit = xx[start:start+n_points]
+    yfit = yy[start:start+n_points]
+    
+    def exp(X, I0, G):
+        return I0*np.exp(G*X)
+    
+    # fit curve
+    popt, _ = scipy.optimize.curve_fit(exp, xfit, yfit)
+    
+    I0, G = popt
+    
+    x_line = np.linspace(xfit[0], xfit[-1], 20)
+    y_line = exp(x_line, I0, G)
+    
+    plt.scatter(xx, yy)
+    
+    # create a line plot for the mapping function
+    plt.plot(x_line, y_line, '--', color='red')
+    plt.show()
+    
+    print("G =", G)
+    print("\nR0 =", 7*G+1)
+    return 7*G+1
