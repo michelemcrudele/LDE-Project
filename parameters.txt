@@ -3,7 +3,7 @@
     "ave_degree" : 10,
     "n_novax" : 250,
     "n_infecteds" : 5,
-    "mu" : 1/7,
+    "mu" : 0.142857142,
     "beta" : 0.07,
     "pro" : 0.0
 }
