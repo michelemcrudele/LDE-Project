@@ -18,7 +18,7 @@ nsim = int(sys.argv[1]) # number of simulations
 # output file
 # time pol r attak_rate clustering_mean clustering ave/std stat/dyn
 
-filename = 'Simulations/SIR_simulation_{N}_{n_novax}_{degree}.csv'.format(N=par['N'], n_novax=par['n_novax'], degree=par['ave_degree'])
+filename = 'Simulations/SIR_simulation_{N}_{n_novax}_{degree}_{beta}.csv'.format(N=par['N'], n_novax=par['n_novax'], degree=par['ave_degree'], beta=par["beta"])
 output = open(filename, 'a')
 columns = ['time,I,pol,r,ar,cc,V_tot,kind,net_type']
 output.writelines(columns)
@@ -36,7 +36,7 @@ def simulation_step(par, rng, r, pol):
     initNET_rnd(info_net_stat, initial_novax=initial_novax)
     info_net_dyn = info_net_stat.copy()
 
-    time_stat, _, I_stat, _, V_stat, I_tot_stat = SIR_net_adaptive(
+    time_stat, _, I_stat, _, V_stat, I_tot_stat, _, _ = SIR_net_adaptive(
         phys_net, info_net_stat,
         beta=par['beta'],
         mu=par['mu'],
@@ -48,7 +48,7 @@ def simulation_step(par, rng, r, pol):
         rng=np.random.default_rng(seed),
         message=False)
 
-    time_dyn, _, I_dyn, _, V_dyn, I_tot_dyn = SIR_net_adaptive(
+    time_dyn, _, I_dyn, _, V_dyn, I_tot_dyn, _, _ = SIR_net_adaptive(
         phys_net, info_net_dyn,
         beta=par['beta'],
         mu=par['mu'],
