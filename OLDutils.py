@@ -176,30 +176,12 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
     NV.append(nv_init)
     PV.append(pv_init)
     
-    
-    ###################################
-    # How many people did change idea?
-    lista = []
-    a = np.zeros(N)
-    lista.append(a)
-
-    changers = []
-    bichangers = []
-    
-    changers.append(0)
-    bichangers.append(0)
-    
-    ###################################
-    
     t = 0
     total_infected = 0
     while True:
-        
-
-        lista.append(a)
         t += 1
         time.append(t)
-        
+
         # REWIRING OF THE INFORMATION NETWORK 
         if rewiring:                           
             novax   = []
@@ -224,13 +206,6 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
                             NET.add_edge(i[0], rng.choice(provax))
 
         # EPIDEMICS IN THE PHYSICAL NETWORK
-        
-        ###################################
-        bichanger = 0
-        changer = 0
-        ###################################
-        
-        
         for i in nx.nodes(G):
             # all possible transitions
             if (NET.nodes[i]['aware_status'] == 0) and (G.nodes[i]['inf_status'] == 'S'):        # provax that get vaccinated
@@ -249,7 +224,6 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
                             G.nodes[i]['got_infected'] = 1
                             
             # EPIDEMICS IN THE INFORMATION NETWORK
-            
             if rng.random() < pro:
                 NET.nodes[i]['new_aware_status'] = 0                                         # become a pro vax due to classical media
                 
@@ -258,21 +232,8 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
                     neighbors = list(nx.all_neighbors(NET, i))
                     target = rng.choice(neighbors, 1)[0]
                     NET.nodes[i]['new_aware_status'] = NET.nodes[target]['aware_status']     # can become a pro/no vax via neighbours
-                    
-                    ###############################################################################
-                    if NET.nodes[target]['aware_status'] != NET.nodes[target]['new_aware_status']:
-                        lista[t][target] = 1
-                    if lista[t-1][target] == 1 :
-                        changer = changer +1
-                    if lista[t-2][target] == 1 and lista[t-1][target] == 1:
-                        bichanger = bichanger +1
-        #print(changer)
             
-        changers.append(changer)
-        bichangers.append(bichanger)
-        
-        ############################################################################################
-        
+
         # UPDATE NETWORKS     
         for i in nx.nodes(G):
             G.nodes[i]['inf_status'] = G.nodes[i]['new_inf_status']
@@ -306,8 +267,7 @@ def SIR_net_adaptive(G, NET, beta, mu, r, pro, pol, initial_infecteds, rewiring=
                 total_infected += data['got_infected']
             break
 
-
-    return np.array(time), np.array(S), np.array(I), np.array(R), np.array(V), total_infected, changers, bichangers
+    return np.array(time), np.array(S), np.array(I), np.array(R), np.array(V), total_infected
 
 def plot_info_network(G):
     nv_list = []
